@@ -444,9 +444,17 @@ let DB = null;
 function activeCharts() {
   const state  = document.getElementById('filter-state').value;
   const domain = document.getElementById('filter-domain').value;
-  if (state)  return DB.by_state[state]  ?? DB.charts;
-  if (domain) return DB.by_domain[domain] ?? DB.charts;
+  if (state)  return DB.by_state[state]?.charts  ?? DB.charts;
+  if (domain) return DB.by_domain[domain]?.charts ?? DB.charts;
   return DB.charts;
+}
+
+function activeOverview() {
+  const state  = document.getElementById('filter-state').value;
+  const domain = document.getElementById('filter-domain').value;
+  if (state)  return DB.by_state[state]?.overview  ?? DB.overview;
+  if (domain) return DB.by_domain[domain]?.overview ?? DB.overview;
+  return DB.overview;
 }
 
 function update() {
@@ -455,6 +463,7 @@ function update() {
   const charts = activeCharts();
 
   renderAll(charts);
+  renderMetrics(activeOverview());
 
   const parts = [state, domain].filter(Boolean);
   const label = parts.join(' · ') || null;
