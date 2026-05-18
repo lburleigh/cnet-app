@@ -444,18 +444,22 @@ let DB = null;
 function activeCharts() {
   const state  = document.getElementById('filter-state').value;
   const domain = document.getElementById('filter-domain').value;
-  if (state && domain) return DB.by_state_domain?.[state]?.[domain]?.charts ?? DB.charts;
-  if (state)           return DB.by_state[state]?.charts                    ?? DB.charts;
-  if (domain)          return DB.by_domain[domain]?.charts                  ?? DB.charts;
+  if (state && domain) return DB.by_state_domain?.[state]?.[domain]?.charts
+                           ?? DB.by_state[state]?.charts
+                           ?? DB.charts;
+  if (state)           return DB.by_state[state]?.charts   ?? DB.charts;
+  if (domain)          return DB.by_domain[domain]?.charts ?? DB.charts;
   return DB.charts;
 }
 
 function activeOverview() {
   const state  = document.getElementById('filter-state').value;
   const domain = document.getElementById('filter-domain').value;
-  if (state && domain) return DB.by_state_domain?.[state]?.[domain]?.overview ?? DB.overview;
-  if (state)           return DB.by_state[state]?.overview                    ?? DB.overview;
-  if (domain)          return DB.by_domain[domain]?.overview                  ?? DB.overview;
+  if (state && domain) return DB.by_state_domain?.[state]?.[domain]?.overview
+                           ?? DB.by_state[state]?.overview
+                           ?? DB.overview;
+  if (state)           return DB.by_state[state]?.overview   ?? DB.overview;
+  if (domain)          return DB.by_domain[domain]?.overview ?? DB.overview;
   return DB.overview;
 }
 
