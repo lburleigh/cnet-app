@@ -304,6 +304,7 @@ function renderWage(d) {
     customdata: rows.map(r => [fmt$(r.median_wage), fmt$(r.p25_wage), fmt$(r.p75_wage)]),
     hovertemplate: '<b>%{y}</b><br>Mean Wage: $%{x:,.0f}<br>Median: %{customdata[0]}<br>25th pct: %{customdata[1]}<br>75th pct: %{customdata[2]}<extra></extra>',
   }], { ...BASE, height: 460, showlegend: false,
+    margin: { ...BASE.margin, l: 260 },
     title: { text: 'Wages by SOC Code — Top 15<br><sup>Mean annual wages; each state–occupation pair counted once</sup>', font:{size:13} },
     xaxis: { ...BASE.xaxis, tickprefix: '$', tickformat: ',.0f' },
     yaxis: { ...BASE.yaxis, showgrid: false },
@@ -322,6 +323,7 @@ function renderEmployment(d) {
     customdata: rows.map(r => [r.mean_wage]),
     hovertemplate: '<b>%{y}</b><br>Total Employment: %{x:,.0f}<br>Mean Wage: $%{customdata[0]:,.0f}<extra></extra>',
   }], { ...BASE, height: 460, showlegend: false,
+    margin: { ...BASE.margin, l: 260 },
     title: { text: 'Total Employment by SOC Code — Top 15<br><sup>Employment summed across all states; each state–occupation pair counted once</sup>', font:{size:13} },
     xaxis: { ...BASE.xaxis, tickformat: ',.0f' },
     yaxis: { ...BASE.yaxis, showgrid: false },
@@ -366,15 +368,18 @@ function renderQuality(d) {
 
 function renderScenario(d) {
   if (!d?.length) return;
-  const rows = [...d].sort(ascBy('questions'));
-  const vals = rows.map(r => r.questions);
+  const rows  = [...d].sort(ascBy('questions'));
+  const vals  = rows.map(r => r.questions);
+  const trunc = s => s.length > 42 ? s.slice(0, 41) + '…' : s;
   Plotly.react('chart-scenario', [{
     type: 'bar', orientation: 'h',
-    x: vals, y: rows.map(r => r.scenario),
-    marker: { color: vals, colorscale: [[0,'#E8F5F4'],[1,DARK_BLUE]], showscale: false,
+    x: vals, y: rows.map(r => trunc(r.scenario)),
+    marker: { color: vals, colorscale: [[0,'#E3F5FD'],[1,BLUE]], showscale: false,
               cmin: Math.min(...vals), cmax: Math.max(...vals) },
-    hovertemplate: '<b>%{y}</b><br>Unique Questions: %{x:,}<extra></extra>',
+    customdata: rows.map(r => [r.scenario]),
+    hovertemplate: '<b>%{customdata[0]}</b><br>Unique Questions: %{x:,}<extra></extra>',
   }], { ...BASE, height: 460, showlegend: false,
+    margin: { ...BASE.margin, l: 290 },
     title: { text: 'Top Scenario Labels — Top 15<br><sup>Number of unique questions per scenario type</sup>', font:{size:13} },
     xaxis: { ...BASE.xaxis, tickformat: ',d' },
     yaxis: { ...BASE.yaxis, showgrid: false },
@@ -386,7 +391,7 @@ function renderGoal(d) {
   // d is sorted descending; reverse for ascending render (highest at top)
   const rows = [...d].reverse();
   const n    = rows.length;
-  const colors = rows.map((_, i) => tint(TEAL, 0.3 + 0.7 * i / Math.max(n-1, 1)));
+  const colors = rows.map((_, i) => tint(DARK_BLUE, 0.3 + 0.7 * i / Math.max(n-1, 1)));
   Plotly.react('chart-goal', [{
     type: 'bar', orientation: 'h',
     x: rows.map(r => r.questions),
@@ -395,6 +400,7 @@ function renderGoal(d) {
     customdata: rows.map(r => [r.percentage]),
     hovertemplate: '<b>%{y}</b><br>Questions: %{x:,}<br>Percentage: %{customdata[0]:.1f}%<extra></extra>',
   }], { ...BASE, height: 430, showlegend: false,
+    margin: { ...BASE.margin, l: 175 },
     title: { text: 'Goal Identification Analysis<br><sup>Number of unique questions where each user goal type was identified</sup>', font:{size:13} },
     xaxis: { ...BASE.xaxis, title: 'Number of Questions' },
     yaxis: { ...BASE.yaxis, showgrid: false },
