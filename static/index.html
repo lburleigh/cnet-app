@@ -216,6 +216,20 @@
   <div id="insight-goal"        class="insight-banner"></div>
   <div class="chart-wrap"><div id="chart-goal"></div></div>
 
+  <div class="section-header">Quality Reach</div>
+  <div id="insight-mediocre"          class="insight-banner"></div>
+  <div class="chart-wrap"><div id="chart-mediocre"></div></div>
+
+  <div class="section-header">Labor Market Coverage</div>
+  <div id="insight-coverage-scatter"  class="insight-banner"></div>
+  <div class="chart-wrap"><div id="chart-coverage-scatter"></div></div>
+  <div id="insight-coverage-balance"  class="insight-banner"></div>
+  <div class="chart-wrap"><div id="chart-coverage-balance"></div></div>
+
+  <div class="section-header">Goals by Wage Band</div>
+  <div id="insight-goal-wage"         class="insight-banner"></div>
+  <div class="chart-wrap"><div id="chart-goal-wage"></div></div>
+
   <footer>CareerNet SOC-LMI Analysis Dashboard &nbsp;·&nbsp; Data: BLS Labor Market Information</footer>
 </main>
 
@@ -287,6 +301,35 @@ function insightGoal(d) {
   if (!d?.length) return '';
   const top = d[0]; // already sorted descending
   return `${bold(top.goal)} is the most frequently identified user goal, present in ${bold(top.percentage + '%')} of unique questions (${fmtN(top.questions)} questions).`;
+}
+
+function insightMediocreReach(d) {
+  if (!d?.length) return '';
+  const top = [...d].sort((a, b) => (b.pct_mediocre * b.total_employment) - (a.pct_mediocre * a.total_employment))[0];
+  return `${bold(top.soc_title)} has the highest mediocre advice reach — ${bold(fmtN(top.total_employment))} workers in an occupation where ${bold(top.pct_mediocre.toFixed(1) + '%')} of answers score ≤2 on at least one quality dimension.`;
+}
+
+function insightCoverageScatter(d) {
+  if (!d?.length) return '';
+  const topQ    = [...d].sort((a, b) => b.question_count - a.question_count)[0];
+  const topWage = [...d].sort((a, b) => b.mean_wage - a.mean_wage)[0];
+  return `${bold(topQ.soc_title)} generates the most questions (${bold(fmtN(topQ.question_count))}). The highest-paying occupation, ${bold(topWage.soc_title)}, has ${bold(fmtN(topWage.question_count))} questions.`;
+}
+
+function insightCoverageBalance(d) {
+  if (!d?.length) return '';
+  const over  = d[0];
+  const under = d[d.length - 1];
+  return `${bold(over.soc_title)} is the most over-discussed occupation (log₂ ratio: ${bold(over.discussion_ratio.toFixed(2))}), while ${bold(under.soc_title)} is the most under-discussed relative to its workforce size.`;
+}
+
+function insightGoalWageBand(d) {
+  if (!d?.length) return '';
+  const topBand = '≥ $150K';
+  const rows    = d.filter(r => r.wage_band === topBand);
+  if (!rows.length) return '';
+  const top = rows.sort((a, b) => b.percentage - a.percentage)[0];
+  return `In the highest wage band (${bold(topBand)}), ${bold(top.goal)} is the dominant goal type at ${bold(top.percentage.toFixed(1) + '%')} of questions.`;
 }
 
 // ── Chart renderers ────────────────────────────────────────────────────────────
@@ -407,6 +450,96 @@ function renderGoal(d) {
   }, CFG);
 }
 
+function renderMediocreReach(d) {
+  if (!d?.length) return;
+  const rows = [...d].sort((a, b) => (a.pct_mediocre * a.total_employment) - (b.pct_mediocre * b.total_employment));
+  const vals = rows.map(r => r.total_employment);
+  const pcts = rows.map(r => r.pct_mediocre);
+  Plotly.react('chart-mediocre', [{
+    type: 'bar', orientation: 'h',
+    x: vals, y: rows.map(r => r.soc_title),
+    marker: { color: pcts, colorscale: [[0,'#E0F4F2'],[1,TEAL]], showscale: true,
+              colorbar: { title: { text: '% Mediocre', side: 'right' }, ticksuffix: '%', thickness: 12, len: 0.6 } },
+    customdata: rows.map(r => [r.pct_mediocre]),
+    hovertemplate: '<b>%{y}</b><br>Total Employment: %{x:,.0f}<br>Mediocre Answers: %{customdata[0]:.1f}%<extra></extra>',
+  }], { ...BASE, height: 460, showlegend: false,
+    margin: { ...BASE.margin, l: 260 },
+    title: { text: 'Mediocre Advice Reach — Top 15<br><sup>Ranked by employment × % answers scoring ≤2 on any quality dimension</sup>', font:{size:13} },
+    xaxis: { ...BASE.xaxis, tickformat: ',.0f' },
+    yaxis: { ...BASE.yaxis, showgrid: false },
+  }, CFG);
+}
+
+function renderCoverageScatter(d) {
+  if (!d?.length) return;
+  const qvals = d.map(r => r.question_count);
+  const avgQ  = qvals.reduce((s, v) => s + v, 0) / qvals.length;
+  Plotly.react('chart-coverage-scatter', [{
+    type: 'scatter', mode: 'markers',
+    x: d.map(r => r.mean_wage),
+    y: d.map(r => r.question_count),
+    text: d.map(r => r.soc_title),
+    marker: { color: qvals, colorscale: [[0,'#E3F5FD'],[1,BLUE]], showscale: false, size: 9, opacity: 0.8 },
+    customdata: d.map(r => [r.total_employment]),
+    hovertemplate: '<b>%{text}</b><br>Mean Wage: $%{x:,.0f}<br>Questions: %{y:,}<br>Employment: %{customdata[0]:,.0f}<extra></extra>',
+  }], { ...BASE, height: 480, showlegend: false,
+    title: { text: 'Questions vs. Mean Wage by Occupation<br><sup>Do higher-paying occupations generate more career questions?</sup>', font:{size:13} },
+    xaxis: { ...BASE.xaxis, tickprefix: '$', tickformat: ',.0f', title: 'Mean Annual Wage' },
+    yaxis: { ...BASE.yaxis, title: 'Unique Questions' },
+    shapes: [{ type: 'line', x0: 0, x1: 1, xref: 'paper', y0: avgQ, y1: avgQ, yref: 'y',
+               line: { color: '#94A3B8', dash: 'dot', width: 1 } }],
+    annotations: [{ x: 1, xref: 'paper', y: avgQ, yref: 'y', text: 'Avg',
+                    showarrow: false, xanchor: 'right', font: { size: 11, color: '#94A3B8' } }],
+  }, CFG);
+}
+
+function renderCoverageBalance(d) {
+  if (!d?.length) return;
+  const over  = d.slice(0, Math.min(10, d.length));
+  const under = d.slice(Math.max(0, d.length - 10));
+  const rows  = [...under, ...over].sort((a, b) => a.discussion_ratio - b.discussion_ratio);
+  const vals  = rows.map(r => r.discussion_ratio);
+  Plotly.react('chart-coverage-balance', [{
+    type: 'bar', orientation: 'h',
+    x: vals, y: rows.map(r => r.soc_title),
+    marker: { color: vals.map(v => v >= 0 ? BLUE : '#94A3B8') },
+    customdata: rows.map(r => [r.question_count, (r.employment_share * 100).toFixed(2), (r.question_share * 100).toFixed(2)]),
+    hovertemplate: '<b>%{y}</b><br>log₂ ratio: %{x:.2f}<br>Questions: %{customdata[0]:,}<br>Workforce share: %{customdata[1]}%<br>Question share: %{customdata[2]}%<extra></extra>',
+  }], { ...BASE, height: 460, showlegend: false,
+    margin: { ...BASE.margin, l: 260 },
+    title: { text: 'Over- vs. Under-Discussed Occupations<br><sup>log₂(question share ÷ workforce share) — positive = more discussed than workforce size suggests</sup>', font:{size:13} },
+    xaxis: { ...BASE.xaxis, title: 'log₂(question share / workforce share)',
+             zeroline: true, zerolinecolor: '#94A3B8', zerolinewidth: 1 },
+    yaxis: { ...BASE.yaxis, showgrid: false },
+  }, CFG);
+}
+
+function renderGoalWageBand(d) {
+  if (!d?.length) return;
+  const bandOrder = ['< $50K', '$50K–$75K', '$75K–$100K', '$100K–$150K', '≥ $150K'];
+  const goals     = [...new Set(d.map(r => r.goal))];
+  const n         = goals.length;
+  const traces    = goals.map((goal, i) => {
+    const t     = i / Math.max(n - 1, 1);
+    const color = i % 2 === 0 ? tint(DARK_BLUE, 0.3 + 0.7 * t) : tint(BLUE, 0.3 + 0.7 * t);
+    const rows  = bandOrder.map(band => d.find(r => r.wage_band === band && r.goal === goal) ?? { percentage: 0, questions: 0 });
+    return {
+      type: 'bar', name: goal,
+      x: bandOrder,
+      y: rows.map(r => r.percentage),
+      marker: { color },
+      customdata: rows.map(r => [r.questions]),
+      hovertemplate: `<b>${goal}</b><br>%{x}<br>%{y:.1f}% of questions<br>Count: %{customdata[0]:,}<extra></extra>`,
+    };
+  });
+  Plotly.react('chart-goal-wage', traces, { ...BASE, height: 460, barmode: 'stack',
+    title: { text: 'Goal Types by Occupation Wage Band<br><sup>Share of questions per goal type within each wage band</sup>', font:{size:13} },
+    yaxis: { ...BASE.yaxis, title: '% of Questions', ticksuffix: '%' },
+    xaxis: { ...BASE.xaxis, title: 'Mean Annual Wage Band', showgrid: false },
+    legend: { title: { text: 'Goal Type' } },
+  }, CFG);
+}
+
 // ── Metric cards ───────────────────────────────────────────────────────────────
 function renderMetrics(ov) {
   const cards = [
@@ -436,12 +569,20 @@ function renderAll(charts) {
   renderQuality(charts.quality);
   renderScenario(charts.scenarios);
   renderGoal(charts.goals);
+  renderMediocreReach(charts.mediocre_reach);
+  renderCoverageScatter(charts.soc_coverage);
+  renderCoverageBalance(charts.soc_coverage);
+  renderGoalWageBand(charts.goal_wage_band);
 
-  showInsight('insight-wage',       insightWage(charts.soc_wage));
-  showInsight('insight-employment', insightEmployment(charts.soc_employment));
-  showInsight('insight-quality',    insightQuality(charts.quality));
-  showInsight('insight-scenario',   insightScenario(charts.scenarios));
-  showInsight('insight-goal',       insightGoal(charts.goals));
+  showInsight('insight-wage',             insightWage(charts.soc_wage));
+  showInsight('insight-employment',       insightEmployment(charts.soc_employment));
+  showInsight('insight-quality',          insightQuality(charts.quality));
+  showInsight('insight-scenario',         insightScenario(charts.scenarios));
+  showInsight('insight-goal',             insightGoal(charts.goals));
+  showInsight('insight-mediocre',         insightMediocreReach(charts.mediocre_reach));
+  showInsight('insight-coverage-scatter', insightCoverageScatter(charts.soc_coverage));
+  showInsight('insight-coverage-balance', insightCoverageBalance(charts.soc_coverage));
+  showInsight('insight-goal-wage',        insightGoalWageBand(charts.goal_wage_band));
 }
 
 // ── Filter logic ───────────────────────────────────────────────────────────────
