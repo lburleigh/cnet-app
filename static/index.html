@@ -163,6 +163,13 @@
       margin-bottom: 18px;
     }
 
+    .chart-desc {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin: 0 4px 10px;
+      line-height: 1.55;
+    }
+
     footer {
       margin-top: 32px;
       padding-top: 16px;
@@ -202,32 +209,41 @@
 
   <div class="section-header">Wages &amp; Employment by SOC Code</div>
   <div id="insight-wage"        class="insight-banner"></div>
+  <p class="chart-desc">The 15 highest-paid occupations by mean annual wage, averaged across all states that report that occupation. Hover a bar to see median and percentile wages.</p>
   <div class="chart-wrap"><div id="chart-wage"></div></div>
   <div id="insight-employment"  class="insight-banner"></div>
+  <p class="chart-desc">The 15 largest occupations by total worker count, summing employment across all states. Hover a bar to see the mean wage for each occupation.</p>
   <div class="chart-wrap"><div id="chart-employment"></div></div>
 
   <div class="section-header">Quality &amp; Scenario Analysis</div>
   <div id="insight-quality"     class="insight-banner"></div>
+  <p class="chart-desc">Answer quality ratings (1–4 scale) across three dimensions: correctness, completeness, and coherency. Each bar shows what share of answers received that score for that dimension.</p>
   <div class="chart-wrap"><div id="chart-quality"></div></div>
   <div id="insight-scenario"    class="insight-banner"></div>
+  <p class="chart-desc">The 15 most common scenario types by number of unique questions tagged with that label. Scenario labels describe the career situation a question addresses (e.g. resume help, interview prep).</p>
   <div class="chart-wrap"><div id="chart-scenario"></div></div>
 
   <div class="section-header">Goal Identification</div>
   <div id="insight-goal"        class="insight-banner"></div>
+  <p class="chart-desc">How often each goal type was identified across all unique questions. Goal types reflect the underlying intent behind a user's career question — what outcome they were trying to reach.</p>
   <div class="chart-wrap"><div id="chart-goal"></div></div>
 
   <div class="section-header">Quality Reach</div>
   <div id="insight-mediocre"          class="insight-banner"></div>
+  <p class="chart-desc">Which occupations are most exposed to low-quality advice, combining the share of mediocre answers (score ≤2 on any quality dimension) with total workforce size. Bar length shows total workers; color intensity shows the percentage of answers rated mediocre.</p>
   <div class="chart-wrap"><div id="chart-mediocre"></div></div>
 
   <div class="section-header">Labor Market Coverage</div>
   <div id="insight-coverage-scatter"  class="insight-banner"></div>
+  <p class="chart-desc">Each point is one occupation. Shows whether career questions on CareerNet tend to concentrate around higher- or lower-paying jobs. The dotted line marks the average question count across all occupations.</p>
   <div class="chart-wrap"><div id="chart-coverage-scatter"></div></div>
   <div id="insight-coverage-balance"  class="insight-banner"></div>
+  <p class="chart-desc">Compares how often each occupation is discussed on CareerNet relative to its share of the total workforce. A positive ratio means the occupation gets more questions than its workforce size predicts; negative means fewer. Showing the 10 most over- and 10 most under-discussed occupations.</p>
   <div class="chart-wrap"><div id="chart-coverage-balance"></div></div>
 
   <div class="section-header">Goals by Wage Band</div>
   <div id="insight-goal-wage"         class="insight-banner"></div>
+  <p class="chart-desc">The mix of user goal types within each occupation wage tier. Each band's bars sum to 100%, showing the relative prevalence of each goal type at different pay levels.</p>
   <div class="chart-wrap"><div id="chart-goal-wage"></div></div>
 
   <footer>CareerNet SOC-LMI Analysis Dashboard &nbsp;·&nbsp; Data: BLS Labor Market Information</footer>
