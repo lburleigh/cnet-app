@@ -481,7 +481,7 @@ function renderMediocreReach(d) {
   }], { ...BASE, height: 460, showlegend: false,
     margin: { ...BASE.margin, l: 260 },
     title: { text: 'Mediocre Advice Reach — Top 15<br><sup>Ranked by employment × % answers scoring ≤2 on any quality dimension</sup>', font:{size:13} },
-    xaxis: { ...BASE.xaxis, tickformat: ',.0f' },
+    xaxis: { ...BASE.xaxis, tickformat: ',.0f', title: 'Total Employment (workers)' },
     yaxis: { ...BASE.yaxis, showgrid: false },
   }, CFG);
 }
@@ -518,7 +518,7 @@ function renderCoverageBalance(d) {
   Plotly.react('chart-coverage-balance', [{
     type: 'bar', orientation: 'h',
     x: vals, y: rows.map(r => r.soc_title),
-    marker: { color: vals.map(v => v >= 0 ? BLUE : '#94A3B8') },
+    marker: { color: vals.map(v => v >= 0 ? DARK_BLUE : tint(BLUE, 0.45)) },
     customdata: rows.map(r => [r.question_count, (r.employment_share * 100).toFixed(2), (r.question_share * 100).toFixed(2)]),
     hovertemplate: '<b>%{y}</b><br>log₂ ratio: %{x:.2f}<br>Questions: %{customdata[0]:,}<br>Workforce share: %{customdata[1]}%<br>Question share: %{customdata[2]}%<extra></extra>',
   }], { ...BASE, height: 460, showlegend: false,
@@ -536,8 +536,7 @@ function renderGoalWageBand(d) {
   const goals     = [...new Set(d.map(r => r.goal))];
   const n         = goals.length;
   const traces    = goals.map((goal, i) => {
-    const t     = i / Math.max(n - 1, 1);
-    const color = i % 2 === 0 ? tint(DARK_BLUE, 0.3 + 0.7 * t) : tint(BLUE, 0.3 + 0.7 * t);
+    const color = tint(TEAL, 0.25 + 0.75 * (i / Math.max(n - 1, 1)));
     const rows  = bandOrder.map(band => d.find(r => r.wage_band === band && r.goal === goal) ?? { percentage: 0, questions: 0 });
     return {
       type: 'bar', name: goal,
