@@ -243,7 +243,7 @@
 
   <div class="section-header">Goals by Wage Band</div>
   <div id="insight-goal-wage"         class="insight-banner"></div>
-  <p class="chart-desc">The mix of user goal types within each occupation wage tier. Each band's bars sum to 100%, showing the relative prevalence of each goal type at different pay levels.</p>
+  <p class="chart-desc">How prevalent each goal type is within each occupation wage tier. Since questions can carry multiple goal labels, bars show the percentage of questions in a band that involve each goal — values do not sum to 100%.</p>
   <div class="chart-wrap"><div id="chart-goal-wage"></div></div>
 
   <footer>CareerNet SOC-LMI Analysis Dashboard &nbsp;·&nbsp; Data: BLS Labor Market Information</footer>
@@ -547,9 +547,9 @@ function renderGoalWageBand(d) {
       hovertemplate: `<b>${goal}</b><br>%{y:.1f}% of questions<br>Count: %{customdata[0]:,}<extra></extra>`,
     };
   });
-  Plotly.react('chart-goal-wage', traces, { ...BASE, height: 460, barmode: 'stack',
-    title: { text: 'Goal Types by Occupation Wage Band<br><sup>Share of questions per goal type within each wage band</sup>', font:{size:13} },
-    yaxis: { ...BASE.yaxis, title: '% of Questions', ticksuffix: '%' },
+  Plotly.react('chart-goal-wage', traces, { ...BASE, height: 460, barmode: 'group',
+    title: { text: 'Goal Types by Occupation Wage Band<br><sup>Questions can carry multiple goal labels — bars show % of questions in each band with that goal</sup>', font:{size:13} },
+    yaxis: { ...BASE.yaxis, title: '% of Questions with Goal', ticksuffix: '%' },
     xaxis: { ...BASE.xaxis, title: 'Mean Annual Wage Band', showgrid: false },
     legend: { title: { text: 'Goal Type' } },
   }, CFG);
