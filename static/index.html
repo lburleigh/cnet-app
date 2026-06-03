@@ -438,7 +438,7 @@ function renderScenario(d) {
     customdata: rows.map(r => [r.scenario]),
     hovertemplate: '<b>%{customdata[0]}</b><br>Unique Questions: %{x:,}<extra></extra>',
   }], { ...BASE, height: 460, showlegend: false,
-    margin: { ...BASE.margin, l: 290 },
+    margin: { ...BASE.margin, l: 330 },
     title: { text: 'Top Scenario Labels — Top 15<br><sup>Number of unique questions per scenario type</sup>', font:{size:13} },
     xaxis: { ...BASE.xaxis, tickformat: ',d' },
     yaxis: { ...BASE.yaxis, showgrid: false },
