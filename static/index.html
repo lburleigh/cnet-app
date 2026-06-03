@@ -209,7 +209,7 @@
 
   <div class="section-header">Wages &amp; Employment by SOC Code</div>
   <div id="insight-wage"        class="insight-banner"></div>
-  <p class="chart-desc">The 15 highest-paid occupations by mean annual wage. Each state that reports the occupation contributes equally to the average regardless of its workforce size — states with few workers in that occupation carry the same weight as large ones. Hover a bar to see state-averaged median and percentile wages.</p>
+  <p class="chart-desc">The 15 highest-paid occupations by mean annual wage, employment-weighted across states — states with more workers in that occupation have more influence on the displayed figure. Hover a bar to see employment-weighted median and percentile wages.</p>
   <div class="chart-wrap"><div id="chart-wage"></div></div>
   <div id="insight-employment"  class="insight-banner"></div>
   <p class="chart-desc">The 15 largest occupations by total worker count, summing employment across all states. Hover a bar to see the mean wage for each occupation.</p>
@@ -217,7 +217,7 @@
 
   <div class="section-header">Quality &amp; Scenario Analysis</div>
   <div id="insight-quality"     class="insight-banner"></div>
-  <p class="chart-desc">Answer quality ratings (1–4 scale) across three dimensions: correctness, completeness, and coherency. Each bar shows what share of answers received that score for that dimension.</p>
+  <p class="chart-desc">Answer quality ratings (1–4 scale) across three dimensions: correctness, completeness, and coherency. Higher scores indicate better quality — 4 is the best, 1 is the worst. Each bar shows what share of answers received that score for that dimension.</p>
   <div class="chart-wrap"><div id="chart-quality"></div></div>
   <div id="insight-scenario"    class="insight-banner"></div>
   <p class="chart-desc">The 15 most common scenario types by number of unique questions tagged with that label. Scenario labels describe the career situation a question addresses (e.g. resume help, interview prep).</p>
@@ -230,7 +230,7 @@
 
   <div class="section-header">Quality Reach</div>
   <div id="insight-mediocre"          class="insight-banner"></div>
-  <p class="chart-desc">Which occupations have the highest share of mediocre answers (score ≤2 on any quality dimension). The 15 occupations shown are ranked by that percentage, so quality rate drives selection regardless of workforce size. Bar length shows total workers; color intensity shows the percentage of answers rated mediocre.</p>
+  <p class="chart-desc">Which occupations have the highest share of mediocre answers (score ≤2 on any quality dimension). The 15 occupations shown are ranked by that percentage, so quality rate drives selection regardless of workforce size. Bars are ordered top-to-bottom from highest to lowest % mediocre. Bar length shows total workers; color intensity shows the percentage of answers rated mediocre.</p>
   <div class="chart-wrap"><div id="chart-mediocre"></div></div>
 
   <div class="section-header">Labor Market Coverage</div>
@@ -238,12 +238,12 @@
   <p class="chart-desc">Each point is one occupation. Shows whether career questions on CareerNet tend to concentrate around higher- or lower-paying jobs. The dotted line marks the average question count across all occupations.</p>
   <div class="chart-wrap"><div id="chart-coverage-scatter"></div></div>
   <div id="insight-coverage-balance"  class="insight-banner"></div>
-  <p class="chart-desc">Compares how often each occupation is discussed on CareerNet relative to its share of the total workforce. A positive ratio means the occupation gets more questions than its workforce size predicts; negative means fewer. Showing the 10 most over- and 10 most under-discussed occupations.</p>
+  <p class="chart-desc">Compares how often each occupation is discussed on CareerNet relative to its share of the total workforce. The log₂ scale makes the values symmetric: a ratio of +1 means twice as many questions as workforce share predicts; -1 means half as many; 0 means perfectly matched. Showing the 10 most over- and 10 most under-discussed occupations.</p>
   <div class="chart-wrap"><div id="chart-coverage-balance"></div></div>
 
   <div class="section-header">Goals by Wage Band</div>
   <div id="insight-goal-wage"         class="insight-banner"></div>
-  <p class="chart-desc">How prevalent each goal type is within each occupation wage tier. Since questions can carry multiple goal labels, bars show the percentage of questions in a band that involve each goal — values do not sum to 100%.</p>
+  <p class="chart-desc">How prevalent each goal type is within each occupation wage tier. Wage bands are based on the occupation's BLS mean annual wage, not the individual asker's salary. Since questions can carry multiple goal labels, bars show the percentage of questions in a band that involve each goal — values do not sum to 100%.</p>
   <div class="chart-wrap"><div id="chart-goal-wage"></div></div>
 
   <footer>CareerNet SOC-LMI Analysis Dashboard &nbsp;·&nbsp; Data: BLS Labor Market Information</footer>
@@ -321,8 +321,8 @@ function insightGoal(d) {
 
 function insightMediocreReach(d) {
   if (!d?.length) return '';
-  const top = [...d].sort((a, b) => (b.pct_mediocre * b.total_employment) - (a.pct_mediocre * a.total_employment))[0];
-  return `${bold(top.soc_title)} has the highest mediocre advice reach — ${bold(fmtN(top.total_employment))} workers in an occupation where ${bold(top.pct_mediocre.toFixed(1) + '%')} of answers score ≤2 on at least one quality dimension.`;
+  const top = [...d].sort((a, b) => b.pct_mediocre - a.pct_mediocre)[0];
+  return `${bold(top.soc_title)} has the highest share of mediocre answers — ${bold(top.pct_mediocre.toFixed(1) + '%')} of answers score ≤2 on at least one quality dimension, affecting ${bold(fmtN(top.total_employment))} workers.`;
 }
 
 function insightCoverageScatter(d) {
@@ -361,7 +361,7 @@ function renderWage(d) {
     marker: { color: vals, colorscale: [[0,'#E0F4F2'],[1,TEAL]], showscale: false,
               cmin: Math.min(...vals), cmax: Math.max(...vals) },
     customdata: rows.map(r => [fmt$(r.median_wage), fmt$(r.p25_wage), fmt$(r.p75_wage)]),
-    hovertemplate: '<b>%{y}</b><br>Mean Wage: $%{x:,.0f}<br>Avg State Median: %{customdata[0]}<br>Avg 25th Pct: %{customdata[1]}<br>Avg 75th Pct: %{customdata[2]}<extra></extra>',
+    hovertemplate: '<b>%{y}</b><br>Mean Wage: $%{x:,.0f}<br>Wtd Median: %{customdata[0]}<br>Wtd 25th Pct: %{customdata[1]}<br>Wtd 75th Pct: %{customdata[2]}<extra></extra>',
   }], { ...BASE, height: 460, showlegend: false,
     margin: { ...BASE.margin, l: 260 },
     title: { text: 'Wages by SOC Code — Top 15<br><sup>Mean annual wages; each state–occupation pair counted once</sup>', font:{size:13} },
@@ -468,7 +468,7 @@ function renderGoal(d) {
 
 function renderMediocreReach(d) {
   if (!d?.length) return;
-  const rows = [...d].sort((a, b) => (a.pct_mediocre * a.total_employment) - (b.pct_mediocre * b.total_employment));
+  const rows = [...d].sort((a, b) => a.pct_mediocre - b.pct_mediocre);
   const vals = rows.map(r => r.total_employment);
   const pcts = rows.map(r => r.pct_mediocre);
   Plotly.react('chart-mediocre', [{
@@ -480,7 +480,7 @@ function renderMediocreReach(d) {
     hovertemplate: '<b>%{y}</b><br>Total Employment: %{x:,.0f}<br>Mediocre Answers: %{customdata[0]:.1f}%<br>Mediocre Reach Score: %{customdata[1]}<extra></extra>',
   }], { ...BASE, height: 460, showlegend: false,
     margin: { ...BASE.margin, l: 260 },
-    title: { text: 'Mediocre Advice Reach — Top 15<br><sup>Ranked by employment × % answers scoring ≤2 on any quality dimension</sup>', font:{size:13} },
+    title: { text: 'Mediocre Advice Reach — Top 15<br><sup>Ranked by % of answers scoring ≤2 on any quality dimension</sup>', font:{size:13} },
     xaxis: { ...BASE.xaxis, tickformat: ',.0f', title: 'Total Employment (workers)' },
     yaxis: { ...BASE.yaxis, showgrid: false },
   }, CFG);
