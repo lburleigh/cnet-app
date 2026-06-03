@@ -322,7 +322,7 @@ function insightGoal(d) {
 function insightMediocreReach(d) {
   if (!d?.length) return '';
   const top = [...d].sort((a, b) => b.pct_mediocre - a.pct_mediocre)[0];
-  return `${bold(top.soc_title)} has the highest share of mediocre answers — ${bold(top.pct_mediocre.toFixed(1) + '%')} of answers score ≤2 on at least one quality dimension, affecting ${bold(fmtN(top.total_employment))} workers.`;
+  return `${bold(top.soc_title)} has the highest share of mediocre answers — ${bold(top.pct_mediocre.toFixed(1) + '%')} of ${bold(fmtN(top.total_answers))} answers score ≤2 on at least one quality dimension, affecting ${bold(fmtN(top.total_employment))} workers.`;
 }
 
 function insightCoverageScatter(d) {
@@ -476,8 +476,8 @@ function renderMediocreReach(d) {
     x: vals, y: rows.map(r => r.soc_title),
     marker: { color: pcts, colorscale: [[0,'#EBF2F7'],[1,DARK_BLUE]], showscale: true,
               colorbar: { title: { text: '% Mediocre', side: 'right' }, ticksuffix: '%', thickness: 12, len: 0.6 } },
-    customdata: rows.map(r => [r.pct_mediocre, Math.round(r.pct_mediocre * r.total_employment).toLocaleString()]),
-    hovertemplate: '<b>%{y}</b><br>Total Employment: %{x:,.0f}<br>Mediocre Answers: %{customdata[0]:.1f}%<br>Mediocre Reach Score: %{customdata[1]}<extra></extra>',
+    customdata: rows.map(r => [r.pct_mediocre, fmtN(r.total_answers), Math.round(r.pct_mediocre * r.total_employment).toLocaleString()]),
+    hovertemplate: '<b>%{y}</b><br>Total Employment: %{x:,.0f}<br>Mediocre Answers: %{customdata[0]:.1f}% of %{customdata[1]} answers<br>Mediocre Reach Score: %{customdata[2]}<extra></extra>',
   }], { ...BASE, height: 460, showlegend: false,
     margin: { ...BASE.margin, l: 260 },
     title: { text: 'Mediocre Advice Reach — Top 15<br><sup>Ranked by % of answers scoring ≤2 on any quality dimension</sup>', font:{size:13} },
