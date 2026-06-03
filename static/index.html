@@ -533,7 +533,9 @@ function renderCoverageBalance(d) {
 function renderGoalWageBand(d) {
   if (!d?.length) return;
   const bandOrder = ['< $50K', '$50K–$75K', '$75K–$100K', '$100K–$150K', '≥ $150K'];
-  const goals     = [...new Set(d.map(r => r.goal))];
+  const goalTotals = {};
+  d.forEach(r => { goalTotals[r.goal] = (goalTotals[r.goal] || 0) + r.questions; });
+  const goals = Object.keys(goalTotals).sort((a, b) => goalTotals[b] - goalTotals[a]);
   const n         = goals.length;
   const traces    = goals.map((goal, i) => {
     const color = tint(TEAL, 0.25 + 0.75 * (i / Math.max(n - 1, 1)));
