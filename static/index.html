@@ -209,7 +209,7 @@
 
   <div class="section-header">Wages &amp; Employment by SOC Code</div>
   <div id="insight-wage"        class="insight-banner"></div>
-  <p class="chart-desc">The 15 highest-paid occupations by mean annual wage, averaged across all states that report that occupation. Hover a bar to see median and percentile wages.</p>
+  <p class="chart-desc">The 15 highest-paid occupations by mean annual wage. Each state that reports the occupation contributes equally to the average regardless of its workforce size — states with few workers in that occupation carry the same weight as large ones. Hover a bar to see state-averaged median and percentile wages.</p>
   <div class="chart-wrap"><div id="chart-wage"></div></div>
   <div id="insight-employment"  class="insight-banner"></div>
   <p class="chart-desc">The 15 largest occupations by total worker count, summing employment across all states. Hover a bar to see the mean wage for each occupation.</p>
@@ -230,7 +230,7 @@
 
   <div class="section-header">Quality Reach</div>
   <div id="insight-mediocre"          class="insight-banner"></div>
-  <p class="chart-desc">Which occupations are most exposed to low-quality advice, combining the share of mediocre answers (score ≤2 on any quality dimension) with total workforce size. Bar length shows total workers; color intensity shows the percentage of answers rated mediocre.</p>
+  <p class="chart-desc">Which occupations have the highest share of mediocre answers (score ≤2 on any quality dimension). The 15 occupations shown are ranked by that percentage, so quality rate drives selection regardless of workforce size. Bar length shows total workers; color intensity shows the percentage of answers rated mediocre.</p>
   <div class="chart-wrap"><div id="chart-mediocre"></div></div>
 
   <div class="section-header">Labor Market Coverage</div>
@@ -361,7 +361,7 @@ function renderWage(d) {
     marker: { color: vals, colorscale: [[0,'#E0F4F2'],[1,TEAL]], showscale: false,
               cmin: Math.min(...vals), cmax: Math.max(...vals) },
     customdata: rows.map(r => [fmt$(r.median_wage), fmt$(r.p25_wage), fmt$(r.p75_wage)]),
-    hovertemplate: '<b>%{y}</b><br>Mean Wage: $%{x:,.0f}<br>Median: %{customdata[0]}<br>25th pct: %{customdata[1]}<br>75th pct: %{customdata[2]}<extra></extra>',
+    hovertemplate: '<b>%{y}</b><br>Mean Wage: $%{x:,.0f}<br>Avg State Median: %{customdata[0]}<br>Avg 25th Pct: %{customdata[1]}<br>Avg 75th Pct: %{customdata[2]}<extra></extra>',
   }], { ...BASE, height: 460, showlegend: false,
     margin: { ...BASE.margin, l: 260 },
     title: { text: 'Wages by SOC Code — Top 15<br><sup>Mean annual wages; each state–occupation pair counted once</sup>', font:{size:13} },
@@ -379,8 +379,8 @@ function renderEmployment(d) {
     x: vals, y: rows.map(r => r.soc_title),
     marker: { color: vals, colorscale: [[0,'#E3F5FD'],[1,BLUE]], showscale: false,
               cmin: Math.min(...vals), cmax: Math.max(...vals) },
-    customdata: rows.map(r => [r.mean_wage]),
-    hovertemplate: '<b>%{y}</b><br>Total Employment: %{x:,.0f}<br>Mean Wage: $%{customdata[0]:,.0f}<extra></extra>',
+    customdata: rows.map(r => [fmt$(r.mean_wage)]),
+    hovertemplate: '<b>%{y}</b><br>Total Employment: %{x:,.0f}<br>Mean Wage: %{customdata[0]}<extra></extra>',
   }], { ...BASE, height: 460, showlegend: false,
     margin: { ...BASE.margin, l: 260 },
     title: { text: 'Total Employment by SOC Code — Top 15<br><sup>Employment summed across all states; each state–occupation pair counted once</sup>', font:{size:13} },
@@ -489,7 +489,7 @@ function renderMediocreReach(d) {
 function renderCoverageScatter(d) {
   if (!d?.length) return;
   const qvals = d.map(r => r.question_count);
-  const avgQ  = qvals.reduce((s, v) => s + v, 0) / qvals.length;
+  const avgQ  = qvals.length ? qvals.reduce((s, v) => s + v, 0) / qvals.length : null;
   Plotly.react('chart-coverage-scatter', [{
     type: 'scatter', mode: 'markers',
     x: d.map(r => r.mean_wage),
@@ -502,10 +502,10 @@ function renderCoverageScatter(d) {
     title: { text: 'Questions vs. Mean Wage by Occupation<br><sup>Do higher-paying occupations generate more career questions?</sup>', font:{size:13} },
     xaxis: { ...BASE.xaxis, tickprefix: '$', tickformat: ',.0f', title: 'Mean Annual Wage' },
     yaxis: { ...BASE.yaxis, title: 'Unique Questions' },
-    shapes: [{ type: 'line', x0: 0, x1: 1, xref: 'paper', y0: avgQ, y1: avgQ, yref: 'y',
-               line: { color: '#94A3B8', dash: 'dot', width: 1 } }],
-    annotations: [{ x: 1, xref: 'paper', y: avgQ, yref: 'y', text: 'Avg',
-                    showarrow: false, xanchor: 'right', font: { size: 11, color: '#94A3B8' } }],
+    shapes:      avgQ != null ? [{ type: 'line', x0: 0, x1: 1, xref: 'paper', y0: avgQ, y1: avgQ, yref: 'y',
+                                   line: { color: '#94A3B8', dash: 'dot', width: 1 } }] : [],
+    annotations: avgQ != null ? [{ x: 1, xref: 'paper', y: avgQ, yref: 'y', text: 'Avg',
+                                   showarrow: false, xanchor: 'right', font: { size: 11, color: '#94A3B8' } }] : [],
   }, CFG);
 }
 
@@ -562,10 +562,10 @@ function renderMetrics(ov) {
   const cards = [
     ['Employment Records',   fmtN(ov.employment_records)],
     ['Unique Questions',     fmtN(ov.unique_questions)],
-    ['Avg Annual Mean Wage', fmt$(ov.mean_wage)],
-    ['Avg Median Wage',      fmt$(ov.median_wage)],
-    ['Avg 25th Pct Wage',    fmt$(ov.p25_wage)],
-    ['Avg 75th Pct Wage',    fmt$(ov.p75_wage)],
+    ['Avg Mean Wage — Discussed Occs', fmt$(ov.mean_wage)],
+    ['Avg Median Wage — Discussed Occs', fmt$(ov.median_wage)],
+    ['Avg 25th Pct — Discussed Occs',    fmt$(ov.p25_wage)],
+    ['Avg 75th Pct — Discussed Occs',    fmt$(ov.p75_wage)],
   ];
   document.getElementById('metrics').innerHTML = cards.map(([l, v]) =>
     `<div class="metric-card"><div class="metric-label">${l}</div><div class="metric-value">${v}</div></div>`
