@@ -637,7 +637,7 @@ function update() {
 
   const parts = [state, domain].filter(Boolean);
   const label = parts.join(' · ') || null;
-  const total = DB.overview.total_rows.toLocaleString();
+  const total = (activeOverview().total_rows ?? DB.overview.total_rows).toLocaleString();
   document.getElementById('subtitle').textContent =
     `Showing: ${label ?? 'all records'} · ${total} total rows`;
 
